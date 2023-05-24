@@ -1,0 +1,18 @@
+<div *ngIf="userinfo.length > 0">
+  <nav>
+    <ul>
+      <li><a routerLink="">Home</a></li>
+      <li><a routerLink="">Eventos</a></li>
+      <li><a routerLink="">Mis entradas</a></li>
+      <li><a routerLink="">Usuario</a></li>
+    </ul>
+  </nav>
+
+  <div class="content">
+    <router-outlet></router-outlet>
+  </div>
+</div>
+
+<div *ngIf="userinfo.length === 0">
+  <router-outlet></router-outlet>
+</div>
