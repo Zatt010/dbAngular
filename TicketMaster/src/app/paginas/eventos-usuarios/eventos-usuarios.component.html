@@ -1,0 +1,20 @@
+<div>
+  <h2>All Events</h2>
+  <ul>
+    <li *ngFor="let event of events">
+      <h3>{{ event.nombre }}</h3>
+      <p>{{ event.fechaHora }}</p>
+      <button (click)="showTickets(event)">Show Tickets</button>
+      <div *ngIf="selectedEvent && selectedEvent._id === event._id">
+        <h4>Tickets Available:</h4>
+        <ul>
+          <li *ngFor="let ticket of ticketsAvailable">
+            <p>Type: {{ ticket.tipo }}</p>
+            <p>Price: {{ ticket.precio }}</p>
+            <button (click)="buyTicket(ticket)">Buy Ticket</button>
+          </li>
+        </ul>
+      </div>
+    </li>
+  </ul>
+</div>

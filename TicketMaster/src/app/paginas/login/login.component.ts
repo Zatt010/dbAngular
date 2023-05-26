@@ -9,6 +9,7 @@ import { Router } from '@angular/router';
 })
 export class LoginComponent {
   datosUser: any;
+  userinfo: any[] = [];
   loginForm: FormGroup = new FormGroup({
     email: new FormControl(''),
     password: new FormControl('')
@@ -31,7 +32,24 @@ export class LoginComponent {
           if (userRole === 'admin') {
             this.router.navigate(['/admin']); // Redirigir a la página de administrador
           } else {
-            this.router.navigate(['/user', userid]); // Redirigir a la página de usuario con el ID del usuario
+            this.userService.getinfous(userid).subscribe(
+              response => {
+                console.log('Response:', response);
+                if (response.userID === userid) {
+                  // Los datos del usuario existen, mostrar la barra de navegación y las páginas correspondientes
+                  console.log('Datos del usuario encontrados');
+                  this.router.navigate(['/user', userid]); // Redirigir a la página de usuario con el ID del usuario
+                } else {
+                  // Los datos del usuario no existen, redirigir a la página CreateDatosUsuarioComponent
+                  console.log('Datos del usuario no encontrados. Redireccionando...');
+                  this.router.navigate(['/user', userid, 'cdata']);
+                }
+              },
+              error => {
+                console.log('Error:', error);
+                // Manejar el error
+              }
+            );
           }
         } else {
           alert('Contraseña incorrecta o usuario no registrado. Si no estás registrado, regístrate.');

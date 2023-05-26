@@ -72,4 +72,30 @@ export class UserService {
     const url = `${this.baseUrl}/Events`;
     return this.http.get<any[]>(url);
   }
+
+  getTicketAvalibity(disponible: string): Observable<any> {
+    const url = `${this.baseUrl}/Tickets_Avalibity?disponible=${disponible}`;
+    return this.http.get<any>(url);
+  }
+
+  getTicketEvent(id_event: string): Observable<any> {
+    const url = `${this.baseUrl}/TicketsE?id_event=${id_event}`;
+    return this.http.get<any>(url);
+  }
+
+  getUserCart(userID: string): Observable<any> {
+    const url = `${this.baseUrl}/Cart_user?userID=${userID}`;
+    return this.http.get<any>(url);
+  }
+
+  createCart(data:any): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+    return this.http.post<any>(this.baseUrl + "/Cart", JSON.stringify(data), { headers: headers });
+  }
+  deleteCart(userID:string): Observable<any> {
+    const url = `${this.baseUrl}/Cart?userID=${userID}`;
+    return this.http.delete<any>(url);
+  }
 }

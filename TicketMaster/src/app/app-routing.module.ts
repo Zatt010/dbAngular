@@ -10,6 +10,11 @@ import { UserComponent } from './paginas/user/user.component';
 import{CreateEventComponent} from './paginas/create-event/create-event.component';
 import{AdminTicketsComponent} from './paginas/admin-tickets/admin-tickets.component';
 import{CreateDatosUsuarioComponent} from './paginas/create-datos-usuario/create-datos-usuario.component';
+import{HomeUsuariosComponent} from './paginas/home-usuarios/home-usuarios.component';
+import{EventosUsuariosComponent} from './paginas/eventos-usuarios/eventos-usuarios.component';
+import{EntradasUsuariosComponent} from './paginas/entradas-usuarios/entradas-usuarios.component';
+import{ChangeinfoComponent} from './paginas/changeinfo/changeinfo.component';
+
 const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
@@ -17,7 +22,25 @@ const routes: Routes = [
   { path: 'home', component: HomeComponent },
   {
     path: 'user/:id',
-    component: HUserComponent
+    component: HUserComponent,
+    children:[
+      {
+      path: 'home/:id',
+      component: HomeUsuariosComponent,
+      },
+      {
+        path: 'events/:id',
+        component: EventosUsuariosComponent,
+        },
+        {
+          path: 'tickets/:id',
+          component: EntradasUsuariosComponent,
+          },
+          {
+            path: 'info/:id',
+            component: ChangeinfoComponent,
+            }
+    ]
   },
   {
     path: 'user/:id/cdata',

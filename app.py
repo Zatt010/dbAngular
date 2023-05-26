@@ -16,7 +16,7 @@ collection = db['users']
 collection1 = db['usuario']
 collection2 = db['events']
 collection3 = db['tickets']
-
+collection4 = db['ShopCar']
 
 # Ruta para obtener un usuario por email y password
 @app.route('/users', methods=['GET'])
@@ -69,31 +69,32 @@ def create_user():
     collection.insert_one(new_user)
     return jsonify({'message': 'User created successfully'})
 
-# Ruta para crear datos usuario
+# Ruta para crear datos de usuario
 @app.route('/createUs', methods=['POST'])
 def create_usu():
-    userID = request.json['userID']
+    userID = int(request.json['userID'])
     nombre_u = request.json['nombre_u']
     nombre_com = request.json['nombre_com']
     Fecha_N = request.json['Fecha_N']
     ci = request.json['ci']
     profilePic = request.json['profilePic']
-    last_event = collection2.find_one(sort=[('_id', pymongo.DESCENDING)])
+    last_event = collection1.find_one(sort=[('_id', pymongo.DESCENDING)])
     if last_event:
         new_id = last_event['_id'] + 1
     else:
         new_id = 1
     new_user = {
-        "_id":new_id,
-        "userID":userID,
-        "profilePic":profilePic,
+        "_id": new_id,
+        "userID": userID,
+        "profilePic": profilePic,
         "nombre_u": nombre_u,
         "nombre_com": nombre_com,
-        "Fecha_N": datetime.strptime(Fecha_N, '%Y-%m-%d').date(),
-        "ci":ci
+        "Fecha_N": datetime.strptime(Fecha_N, '%Y-%m-%d').isoformat(),
+        "ci": ci
     }
-    collection.insert_one(new_user)
+    collection1.insert_one(new_user)
     return jsonify({'message': 'User created successfully'})
+
 
 # Ruta para crear un nuevo evento
 @app.route('/create_event', methods=['POST'])
@@ -175,11 +176,10 @@ def update_user():
         return jsonify({'message': 'Usuario actualizado correctamente'})
     else:
         return jsonify({'message': 'El usuario no existe'})
-
-# Ruta para obtener un usuario por id 
+# Ruta para eliminar un usuario existente
 @app.route('/usersget', methods=['GET'])
 def get_userid():
-    idu = request.args.get('idu')
+    idu = int(request.args.get('idu')) # Convertir el ID del usuario a un número
     user = collection1.find_one({'userID': idu})
     if user:
         user['_id'] = str(user['_id'])
@@ -241,6 +241,15 @@ def get_tickets_by_availability():
     available_tickets = list(collection3.find({"disponible": disponible}))
     return jsonify(available_tickets)
 
+# Ruta para obtener tickets por evento
+@app.route('/TicketsE', methods=['GET'])
+def get_tickets_by_event():
+    event = int(request.args.get('id_event'))
+    available_tickets = list(collection3.find({"id_event": event}))
+    return jsonify(available_tickets)
+
+
+
 # Ruta para crear tickets
 @app.route('/Tickets_Create', methods=['POST'])
 def create_ticket():
@@ -275,6 +284,72 @@ def update_ticket_availability():
     disponible = request.json['disponible']
     collection3.update_one({"_id": id_ticket}, {"$set": {"disponible": disponible}})
     return jsonify({'message': 'Ticket availability updated'})
+
+# Ruta para eventos x categoria
+@app.route('/Events_Category', methods=['GET'])
+def get_events_by_category():
+    category = request.args.get('categoria')
+    events = list(collection2.find({"categoria": category}))
+    serialized_events = [{k: v for k, v in event.items() if k != '_id'} for event in events]
+    return jsonify(serialized_events)
+
+# Ruta para eventos x pais
+@app.route('/Events_Country', methods=['GET'])
+def get_events_by_country():
+    country = request.args.get('pais')
+    events = list(collection2.find({"pais": country}))
+    serialized_events = [{k: v for k, v in event.items() if k != '_id'} for event in events]
+    return jsonify(serialized_events)
+
+
+# Ruta para buscar eventos por nombre, país, ciudad o categoría
+@app.route('/Events/Search', methods=['GET'])
+def search_events():
+    query = request.args.get('q')
+    events = list(collection2.find({
+        "$or": [
+            {"nombre": {"$regex": query, "$options": "i"}},
+            {"pais": {"$regex": query, "$options": "i"}},
+            {"ciudad": {"$regex": query, "$options": "i"}},
+            {"categoria": {"$regex": query, "$options": "i"}}
+        ]
+    }))
+    serialized_events = []
+    for event in events:
+        serialized_event = {k: v for k, v in event.items() if k != '_id'}
+        serialized_events.append(serialized_event)
+    return jsonify(serialized_events)
+
+#crear elemento carrito de compras
+@app.route('/Cart', methods=['POST'])
+def add_to_cart():
+    last_ticket = collection4.find_one(sort=[('_id', pymongo.DESCENDING)])
+    if last_ticket:
+            new_id = last_ticket['_id'] + 1
+    else:
+            new_id = 1
+    cart_item = {
+        "_id": new_id,
+        "userID": request.json['userID'],
+        "ticketID": request.json['ticketID']
+    }
+    collection4.insert_one(cart_item)
+    return jsonify({'message': 'Item added to cart'})
+
+# Eliminar carrito de compras por userID
+@app.route('/Cart', methods=['DELETE'])
+def delete_cart_items():
+    userID = int(request.args.get('userID'))
+    collection4.delete_many({"userID": userID})
+    return jsonify({'message': 'Cart items deleted'})
+
+#mostrar carrito de compras por usuario
+@app.route('/Cart_user', methods=['GET'])
+def get_cart_items():
+    userID = int(request.args.get('userID'))
+    cart_items = list(collection4.find({"userID": userID}))
+    serialized_items = [{k: v for k, v in item.items() if k != '_id'} for item in cart_items]
+    return jsonify(serialized_items)
 
 
 if __name__ == '__main__':

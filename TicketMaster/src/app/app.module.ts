@@ -16,6 +16,10 @@ import { CreateEventComponent } from './paginas/create-event/create-event.compon
 import { AdminTicketsComponent } from './paginas/admin-tickets/admin-tickets.component';
 import { DatosUsuarioComponent } from './paginas/datos-usuario/datos-usuario.component';
 import { CreateDatosUsuarioComponent } from './paginas/create-datos-usuario/create-datos-usuario.component';
+import { HomeUsuariosComponent } from './paginas/home-usuarios/home-usuarios.component';
+import { EventosUsuariosComponent } from './paginas/eventos-usuarios/eventos-usuarios.component';
+import { EntradasUsuariosComponent } from './paginas/entradas-usuarios/entradas-usuarios.component';
+import { ChangeinfoComponent } from './paginas/changeinfo/changeinfo.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -29,7 +33,11 @@ import { CreateDatosUsuarioComponent } from './paginas/create-datos-usuario/crea
     CreateEventComponent,
     AdminTicketsComponent,
     DatosUsuarioComponent,
-    CreateDatosUsuarioComponent
+    CreateDatosUsuarioComponent,
+    HomeUsuariosComponent,
+    EventosUsuariosComponent,
+    EntradasUsuariosComponent,
+    ChangeinfoComponent
   ],
   imports: [
     BrowserModule,
