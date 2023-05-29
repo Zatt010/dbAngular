@@ -38,7 +38,7 @@ export class LoginComponent {
                 if (response.userID === userid) {
                   // Los datos del usuario existen, mostrar la barra de navegación y las páginas correspondientes
                   console.log('Datos del usuario encontrados');
-                  this.router.navigate(['/user', userid]); // Redirigir a la página de usuario con el ID del usuario
+                  this.router.navigate(['/user', userid,"home",userid]); // Redirigir a la página de usuario con el ID del usuario
                 } else {
                   // Los datos del usuario no existen, redirigir a la página CreateDatosUsuarioComponent
                   console.log('Datos del usuario no encontrados. Redireccionando...');
