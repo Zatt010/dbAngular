@@ -17,6 +17,7 @@ collection1 = db['usuario']
 collection2 = db['events']
 collection3 = db['tickets']
 collection4 = db['ShopCar']
+collection5 = db['ticketsUsers']
 
 # Ruta para obtener un usuario por email y password
 @app.route('/users', methods=['GET'])
@@ -248,6 +249,21 @@ def get_tickets_by_event():
     available_tickets = list(collection3.find({"id_event": event}))
     return jsonify(available_tickets)
 
+# Ruta para obtener tickets por ID o una lista de IDs
+@app.route('/Tickets', methods=['GET'])
+def get_tickets_by_id():
+    ticket_ids = request.args.get('_id')  # Obtener los IDs de ticket de la URL
+    id_list = ticket_ids.split(',')  # Dividir los IDs en una lista
+
+    ticket_list = []  # Lista para almacenar los tickets
+
+    for ticket_id in id_list:
+        ticket = collection3.find_one({'_id': int(ticket_id)})  # Obtener el ticket por ID
+        if ticket:
+            ticket['_id'] = str(ticket['_id'])
+            ticket_list.append(ticket)  # Agregar el ticket a la lista si existe
+
+    return jsonify(ticket_list)  # Devolver la lista de tickets en formato JSON
 
 
 # Ruta para crear tickets
@@ -280,9 +296,17 @@ def create_ticket():
 # Ruta para modificar tickets
 @app.route('/Tickets_Ava', methods=['PUT'])
 def update_ticket_availability():
-    id_ticket = int(request.json['_id'])
+    ids = request.json['_id']
     disponible = request.json['disponible']
-    collection3.update_one({"_id": id_ticket}, {"$set": {"disponible": disponible}})
+    if isinstance(ids, list):
+        # Si _id es una lista, actualiza la disponibilidad para cada elemento
+        for id_ticket in ids:
+            id_ticket = int(id_ticket)
+            collection3.update_one({"_id": id_ticket}, {"$set": {"disponible": disponible}})
+    else:
+        # Si _id es un solo valor, actualiza la disponibilidad para ese elemento
+        id_ticket = int(ids)
+        collection3.update_one({"_id": id_ticket}, {"$set": {"disponible": disponible}})
     return jsonify({'message': 'Ticket availability updated'})
 
 # Ruta para eventos x categoria
@@ -292,6 +316,55 @@ def get_events_by_category():
     events = list(collection2.find({"categoria": category}))
     serialized_events = [{k: v for k, v in event.items() if k != '_id'} for event in events]
     return jsonify(serialized_events)
+
+# Ruta para obtener un evento por ID o una lista de IDs
+@app.route('/EventsID', methods=['GET'])
+def get_Event_ID():
+    id_events = request.args.get('id_event')  # Obtener los IDs de evento de la URL
+    id_list = id_events.split(',')  # Dividir los IDs en una lista
+
+    event_list = []  # Lista para almacenar los eventos
+
+    for id_event in id_list:
+        event = collection2.find_one({'cod_E': int(id_event)})  # Obtener el evento por ID
+        if event:
+            event['_id'] = str(event['_id'])
+            event_list.append(event)  # Agregar el evento a la lista si existe
+
+    return jsonify(event_list)  # Devolver la lista de eventos en formato JSON
+
+# Ruta para obtener información de usuarios
+@app.route('/Userinfo', methods=['GET'])
+def get_user_info():
+    user_id = int(request.args.get('userID') ) # Obtener el ID de usuario desde los parámetros de la solicitud
+    user = collection1.find_one({'userID': user_id})  # Utilizar el campo userID en lugar del campo _id
+    if user:
+        user['_id'] = str(user['_id'])  # Convertir el campo _id a una cadena
+        return jsonify(user)
+    else:
+        return jsonify({"error": "User not found."})
+
+# Ruta para actualizar información de un usuario
+@app.route('/Userinfo', methods=['PUT'])
+def update_user_info():
+    user_id = int(request.args.get('userID'))  # Obtener el ID de usuario desde los parámetros de la solicitud
+    data = request.get_json()  # Obtener los datos enviados en el cuerpo de la solicitud
+    # Verificar si el usuario existe antes de realizar la actualización
+    existing_user = collection1.find_one({'userID': user_id})
+    if not existing_user:
+        return jsonify({"error": "User not found."})
+    # Actualizar los campos con los valores proporcionados en los datos recibidos
+    existing_user['profilePic'] = data.get('profilePic', existing_user['profilePic'])
+    existing_user['nombre_u'] = data.get('nombre_u', existing_user['nombre_u'])
+    existing_user['nombre_com'] = data.get('nombre_com', existing_user['nombre_com'])
+    existing_user['Fecha_N'] = data.get('Fecha_N', existing_user['Fecha_N'])
+    existing_user['ci'] = data.get('ci', existing_user['ci'])
+    # Realizar la actualización en la base de datos
+    collection1.update_one({'userID': user_id}, {'$set': existing_user})
+    return jsonify({"message": "User information updated successfully."})
+
+
+
 
 # Ruta para eventos x pais
 @app.route('/Events_Country', methods=['GET'])
@@ -330,8 +403,9 @@ def add_to_cart():
             new_id = 1
     cart_item = {
         "_id": new_id,
-        "userID": request.json['userID'],
-        "ticketID": request.json['ticketID']
+        "userID": int(request.json['userID']),
+        "ticketID": request.json['ticketID'],
+        "precio":request.json['precio']
     }
     collection4.insert_one(cart_item)
     return jsonify({'message': 'Item added to cart'})
@@ -351,6 +425,45 @@ def get_cart_items():
     serialized_items = [{k: v for k, v in item.items() if k != '_id'} for item in cart_items]
     return jsonify(serialized_items)
 
+# Ruta para crear un nuevo tickets usuario permanente
+@app.route('/createT_U', methods=['POST'])
+def create_userTickets():
+    last_ticket = collection5.find_one(sort=[('_id', pymongo.DESCENDING)])
+    if last_ticket:
+        new_id = last_ticket['_id'] + 1
+    else:
+        new_id = 1
+    
+    userID = int(request.json['userID'])
+    ticketIDs = request.json['ticketID']
+    
+    if isinstance(ticketIDs, list):
+        # Si ticketID es una lista, crea un nuevo ticket de usuario para cada elemento
+        for ticketID in ticketIDs:
+            new_user = {
+                "_id": new_id,
+                "userID": userID,
+                "ticketID": ticketID
+            }
+            collection5.insert_one(new_user)
+            new_id += 1
+    else:
+        # Si ticketID es un solo valor, crea un único ticket de usuario
+        new_user = {
+            "_id": new_id,
+            "userID": userID,
+            "ticketID": ticketIDs
+        }
+        collection5.insert_one(new_user)
+    
+    return jsonify({'message': 'TicketUser created successfully'})
+
+#mostrar tickets del usuario
+@app.route('/Ticket_user', methods=['GET'])
+def get_ticket_user():
+    userID = int(request.args.get('userID'))
+    cart_items = list(collection5.find({"userID": userID}))
+    return jsonify(cart_items)
 
 if __name__ == '__main__':
     app.run(debug=True)

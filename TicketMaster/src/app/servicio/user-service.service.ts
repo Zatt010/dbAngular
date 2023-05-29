@@ -73,6 +73,11 @@ export class UserService {
     return this.http.get<any[]>(url);
   }
 
+  getEventbyCate(categoria:string): Observable<any[]> {
+    const url = `${this.baseUrl}/Events_Category?categoria=${categoria}`;
+    return this.http.get<any[]>(url);
+  }
+
   getTicketAvalibity(disponible: string): Observable<any> {
     const url = `${this.baseUrl}/Tickets_Avalibity?disponible=${disponible}`;
     return this.http.get<any>(url);
@@ -83,11 +88,33 @@ export class UserService {
     return this.http.get<any>(url);
   }
 
+  getTicketID(_id: string): Observable<any> {
+    const url = `${this.baseUrl}/Tickets?_id=${_id}`;
+    return this.http.get<any>(url);
+  }
   getUserCart(userID: string): Observable<any> {
     const url = `${this.baseUrl}/Cart_user?userID=${userID}`;
     return this.http.get<any>(url);
   }
+  getTicket_user(userID: string): Observable<any> {
+    const url = `${this.baseUrl}/Ticket_user?userID=${userID}`;
+    return this.http.get<any>(url);
+  }
 
+  getUserinfo(userID: string): Observable<any> {
+    const url = `${this.baseUrl}/Userinfo?userID=${userID}`;
+    return this.http.get<any>(url);
+  }
+
+  updateUserInfo(userID: string, userData: any): Observable<any> {
+    const url = `${this.baseUrl}/Userinfo?userID=${userID}`;
+    return this.http.put<any>(url, userData);
+  }
+
+  getEventID(id_event: string): Observable<any> {
+    const url = `${this.baseUrl}/EventsID?id_event=${id_event}`;
+    return this.http.get<any>(url);
+  }
   createCart(data:any): Observable<any> {
     const headers = new HttpHeaders({
       'Content-Type': 'application/json'
@@ -97,5 +124,17 @@ export class UserService {
   deleteCart(userID:string): Observable<any> {
     const url = `${this.baseUrl}/Cart?userID=${userID}`;
     return this.http.delete<any>(url);
+  }
+
+  updateTicketDis(data: any): Observable<any> {
+    const url = `${this.baseUrl}/Tickets_Ava`;
+    return this.http.put<any>(url, data);
+  }
+
+  createuserTicketsave(data:any): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+    return this.http.post<any>(this.baseUrl + "/createT_U", JSON.stringify(data), { headers: headers });
   }
 }
